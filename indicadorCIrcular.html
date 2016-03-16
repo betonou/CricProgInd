@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Circular Progress Indicator</title>
+        <link rel="stylesheet" href="css/indicador_circular.css">
+        <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+</head>
+   
+    <body onload="indicadores()">
+
+        <div class="row" id="camada_macro">
+            <hr>
+            <div  style="margin-top: 20px">
+                <div  id="conteudo">
+                    <!--Circular Indicators puted here-->
+                </div>
+
+            </div>
+
+            <hr>
+        </div>
+
+        <script>
+            var corOK = "#2199e8";
+            var corDev = "#8fc550";
+            var corWarn = "#ffce44";
+        function indicadores(){
+            
+            var url = "indicators.json";
+            
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    
+                    var myObj = JSON.parse(xmlhttp.responseText);
+
+                    
+                    alert(JSON.stringify(myObj.indicadores.length));
+                    Topo(myObj.indicadores);
+                    setUp(myObj.indicadores.length);
+
+                }
+            };
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send();
+        };
+        
+            function Topo(indicadores) {
+                if (indicadores.length == 0) {
+                    alert("Cant find JSON to read Indicators");
+                } else {
+                    $("#conteudo").html("");
+                    for (var i = 0; i < indicadores.length; i++) {
+                        $("#conteudo").append('<div style="float:left; margin:30px">' +
+                                '<div class="reset-this">' +
+                                '<div id="teste' + (i + 1) + '" class="clock" data-pc="' + indicadores[i].pc + '" style="height:120px">' +
+                                '<div class="display"></div>' +
+                                '<div class="front left"></div>	' +
+                                '<div class="rotate left  ">' +
+                                '    <div class="bg left"><div id="circulo_a"></div></div>' +
+                                '</div>' +
+                                '<div class="rotate right ">' +
+                                '   <div class="bg right"><div id="circulo_b"></div></div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                
+                                '<i style="" class="legenda"> ' + indicadores[i].Name + ' </i>' +
+                                '</div>');
+                    }
+                }
+
+            }
+            
+
+
+            function setUp(limite)
+            {
+               alert(limite);
+                for (var k = 0; k < limite; k++) {
+                    var tmp = $('#teste'+(k+1));
+                    if (tmp.css("height") != undefined) {
+                        var straux = "px";
+                        tmp.rotateLeft = tmp.find('.rotate.left');
+                        tmp.rotateRight = tmp.find('.rotate.right');
+                        tmp.circulo_a = tmp.find('#circulo_a');
+                        tmp.circulo_b = tmp.find('#circulo_b');
+                        tmp.display = tmp.find('.display');
+                        var m = tmp.attr("data-pc");
+                        straux = tmp.css("height");
+                        var h = straux.replace("px", "");
+
+                        animation(tmp, m, 100, h);
+                    }
+                    ;
+                }
+                ;
+            }
+
+            function animation(indicador, current, total, hc)
+            {
+                var angulo = (360 / total) * (current);
+                var obj;
+
+                if (current === 0) {
+                    // Hiding the right half of the background:
+                    indicador.rotateRight.hide();
+                    // Resetting the rotation of the left part:
+                    rotateElement(indicador.rotateLeft, 0);
+                }
+
+                if (angulo <= 180) {
+                    // The left part is rotated, and the right is currently hidden:
+                    obj = indicador.rotateLeft;
+                    var l = 0;
+                    var cresc = setInterval(function () {
+
+                        rotateElement(obj, l, hc);
+                        l++;
+                        if (l >= angulo) {
+                            clearInterval(cresc);
+                            l = 0;
+                        }
+                        ;
+                    }, 10);
+                } else {
+                    // The first part of the rotation has completed, so we start rotating the right part:
+                    indicador.rotateRight.show();
+                    indicador.rotateLeft.show();
+
+
+                    rotateElement(indicador.rotateLeft, 180, hc);
+
+                    obj = indicador.rotateRight;
+                    angulo = angulo - 180;
+                    var l = 0;
+
+                    var cresc = setInterval(function () {
+
+                        rotateElement(obj, l, hc);
+                        l++;
+                        if (l >= angulo) {
+                            clearInterval(cresc);
+                            l = 0;
+                        }
+                        ;
+                    }, 5);
+                }
+
+                //conteudo interno do circulo
+                indicador.display.html((current < 10 ? '0' + current : current) + "%");
+
+                if (current < 40) {
+                    indicador.circulo_a.css("border-color", corWarn);
+                    indicador.circulo_b.css("border-color", corWarn);
+                } else if (current >= 40 && current < 70) {
+                    indicador.circulo_a.css("border-color", corDev);
+                    indicador.circulo_b.css("border-color", corDev);
+                } else {
+                    indicador.circulo_a.css("border-color", corOK);
+                    indicador.circulo_b.css("border-color", corOK);
+                }
+            }
+
+            function rotateElement(obj, angulo, altura)
+            {
+
+                var rotate = 'rotate(' + angulo + 'deg)';
+                var str = navigator.userAgent;
+                if (str.indexOf("Firefox") > -1) {
+
+                    obj.css('MozTransform', rotate);
+
+                } else if ((str.indexOf("Safari") > -1) || (str.indexOf("WebKit") > -1)) {
+                    obj.css('WebkitTransform', rotate);
+
+                } else if (str.indexOf("MSIE") > -1) {
+
+                    var cos = Math.cos(Math.PI * 2 / 360 * angulo);
+                    var sin = Math.sin(Math.PI * 2 / 360 * angulo);
+
+                    obj.css("filter", "progid:DXImageTransform.Microsoft.Matrix(M11=" + cos + ",M12=-" + sin + ",M21=" + sin + ",M22=" + cos + ",SizingMethod='auto expand',FilterType='nearest neighbor')");
+
+                    obj.css("left", -Math.floor((obj.width() - altura) / 2));
+                    obj.css("top", -Math.floor((obj.height() - altura) / 2));
+
+                } else if (str.indexOf("Trident") > -1) {
+
+                    obj.css('msTransform', rotate);
+
+                } else if (str.indexOf("Presto") > -1) {
+                    obj.css('OTransform', rotate);
+                } else if (str.indexOf("Opera") > -1) {
+                    obj.css('OTransform', rotate);
+                } else {
+                    obj.css('WebkitTransform', rotate);
+            }
+        }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,8 @@
+{
+"indicadores":[
+        {"pc":25, "Name":"A Indicator"},
+        {"pc":45, "Name":"B Indicator"},
+        {"pc":75, "Name":"Project Indicator"},
+        {"pc":95, "Name":"Evolution Indicator"}
+    ]
+}
